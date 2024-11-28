@@ -439,7 +439,7 @@ class VectorSearch:
 
 # Data Loader Module
 class DataLoader:
-    def __init__(self, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file):
+    def __init__(self, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file):
         logging.info("Initializing DataLoader")
         load_dotenv()
         self.environment = os.getenv("ENV")
@@ -447,7 +447,7 @@ class DataLoader:
         self.log_json = self.load(log)
         self.transaction_meta_json = self.load(transaction_details)
         self.merchant_config_json = self.load(merchant_details)
-        self.context_text = self.load_text('Context.txt')
+        self.context_text = self.load_text(rules_context_text_file, 'Context.txt')
         self.rules_json = None
         self.rules_context = None
 
@@ -519,7 +519,11 @@ class DataLoader:
             return {}
 
     @staticmethod
-    def load_text(file_path):
+    def load_text(rules_context_text_file, file_path):
+        if rules_context_text_file:
+            logging.info(f"Loading text file given data")
+            return rules_context_text_file
+
         logging.info(f"Loading text file: {file_path}")
         try:
             with open(file_path, 'r') as f:
@@ -2060,9 +2064,9 @@ def delete_file(file_path):
         print(f"Error deleting file '{file_path}': {e}")
 
 # def main():
-def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
+def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
 
-    data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file)
+    data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
 
     # Convert context to JSON rules
