@@ -603,7 +603,13 @@ Description:
             logging.error(f"Error generating context for field '{field}': {e}")
             raise
 
-    def convert_context_to_json_rules(self):
+    def convert_context_to_json_rules(self, rules_context, rules_json):
+        if rules_context and rules_json:
+            self.rules_json = rules_json
+            self.rules_context = rules_context
+            logging.info("Rules and rules context loaded successfully from given data. Skipping conversion.")
+            return self.rules_context
+
         rules_json_file = 'rules.json'
         rules_context_file = 'rules_context.json'
 
@@ -2054,13 +2060,13 @@ def delete_file(file_path):
         print(f"Error deleting file '{file_path}': {e}")
 
 # def main():
-def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
+def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
 
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file)
     
 
     # Convert context to JSON rules
-    rules_context = data_loader.convert_context_to_json_rules()
+    rules_context = data_loader.convert_context_to_json_rules(rules_context, rules_json)
     if not data_loader.rules_json:
         logging.error("Rules JSON is empty. Exiting.")
         return
@@ -2102,21 +2108,24 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
     delete_file(f"Log.json_context.json")
     delete_file(f"Merchant Configurations.json_context.json")
     delete_file(f"Transaction Meta Data.json_context.json")
-    delete_file(f"rules_context.json")
     delete_file(f"embeddings_cache/Log.json_embeddings.pkl")
     delete_file(f"embeddings_cache/Merchant Configurations.json_embeddings.pkl")
     delete_file(f"embeddings_cache/Transaction Meta Data.json_embeddings.pkl")
+    delete_file(f"embeddings_cache/rule_embeddings.pkl")
+    delete_file(f"rules_context.json")
     delete_file(f"rules.json")
     
     delete_file(f"thought_graph_{udf_order_id}_final.png")
     delete_file(f"RCA_Report_{udf_order_id}.txt")
 
     logging.info("Returning final object")
-    return jsonify({
+    return {
         'context_files' : {
             'log_context': fields_context['Log.json'],
             'merchant_context': fields_context['Transaction Meta Data.json'],
-            'transaction_context': fields_context['Merchant Configurations.json']
+            'transaction_context': fields_context['Merchant Configurations.json'],
+            'rules_context': data_loader.rules_context,
+            'rules_json': data_loader.rules_json
         },
         'pkl_files' : {
             'log_embeddings': str((vector_search.field_embeddings['Log.json'], vector_search.field_ids['Log.json'])),
@@ -2128,4 +2137,4 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
             'RCA_report': got_manager.summary,
             'thought_graph': str(got_manager.graph_png)
         }
-    })
+    }
