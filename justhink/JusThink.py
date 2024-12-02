@@ -29,6 +29,7 @@ from functools import lru_cache
 import math
 from datetime import datetime, timedelta  # Added for temporal rewards
 import threading
+from jaf.utils import get_network_proxy
 from jaf.core.llm import AzureGPTLLM
 from jaf.core.encode import AzureOpenAIEncoder
 
@@ -68,13 +69,15 @@ client = AzureOpenAI(
     azure_endpoint=AZURE_OAI_BASE_URL,
     azure_deployment=AZURE_GPT_DEPLOYMENT_NAME,
     api_version=AZURE_OAI_API_VERSION,
-    api_key=AZURE_OAI_API_KEY
+    api_key=AZURE_OAI_API_KEY,
+    http_client=get_network_proxy(__name__)
 )
 encoder = AzureOpenAI(
     azure_endpoint= AZURE_OAI_BASE_URL,
     azure_deployment= AZURE_EMB_DEPLOYMENT_NAME,
     api_version= AZURE_OAI_API_VERSION,
-    api_key= AZURE_OAI_API_KEY
+    api_key= AZURE_OAI_API_KEY,
+    http_client=get_network_proxy(__name__)
 )
 
     
