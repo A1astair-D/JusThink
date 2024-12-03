@@ -130,6 +130,7 @@ class ExecutorModuleRules:
 
 class VectorSearch:
     def __init__(self, embedding_model="text-embedding-ada-002"):
+        logging.info("Initializing model")
         self.embedding_model = embedding_model
         self.embedding_dim = 1536 if "ada-002" in embedding_model else 768
         self.rule_embeddings = None
@@ -141,11 +142,13 @@ class VectorSearch:
         self.killer = GracefulKiller()
         self.embeddings_dir = 'embeddings_cache'  # Directory to store embeddings
 
+        logging.info("Making Embedding data")
         if not os.path.exists(self.embeddings_dir):
             os.makedirs(self.embeddings_dir)
         # Tokenizer for the specific model
         self.encoding = tiktoken.encoding_for_model(AZURE_GPT_MODEL_NAME)
         # encoding = tiktoken.get_encoding("cl100k_base")
+        logging.info("Initialized Model successfully")
 
     def count_tokens(self, text):
         return len(self.encoding.encode(text))
