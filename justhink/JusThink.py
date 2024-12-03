@@ -264,7 +264,6 @@ class VectorSearch:
 
             # Load previously saved embeddings if available
             saved_data = self.load_embeddings(embeddings_file)
-            print(saved_data)
             if saved_data:
                 self.field_embeddings[json_file], self.field_ids[json_file] = saved_data
                 self.field_nn[json_file] = NearestNeighbors(n_neighbors=10, metric='cosine').fit(self.field_embeddings[json_file])
@@ -331,6 +330,7 @@ class VectorSearch:
             return
 
     def load_or_build_vectors(self, rules_context, fields_context, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
+        logging.info("Loading Vectors from data")
         self.load_field_vectors_from_given_data('Log.json', log_embeddings_file)
         self.load_field_vectors_from_given_data('Merchant Configurations.json', merchant_configurations_embeddings_file)
         self.load_field_vectors_from_given_data('Transaction Meta Data.json', transaction_meta_data_embeddings_file)
@@ -465,6 +465,7 @@ class DataLoader:
         # print("----------------------------------------------------------------------------------------")
 
         # Extract field names
+        logging.info("Extracting field names")
         self.log_fields = self.extract_fields(self.log_json)
         self.transaction_meta_fields = self.extract_fields(self.transaction_meta_json)
         self.merchant_config_fields = self.extract_fields(self.merchant_config_json)
@@ -656,7 +657,6 @@ Output the rules in valid JSON format.
             rules_proper_json = response.choices[0].message.content
             rules_text_json = response.choices[0].message.content.split("```")
             first_four = rules_text_json[1][:4]
-            print(first_four)
             if first_four == 'json':
                 rules_proper_json = rules_text_json[1][4:] 
             else :
@@ -2031,20 +2031,20 @@ Issue 2:
         if self.rca_findings:
             rca = self.generate_aggregated_rca()
             if rca:
-                print("Final Root Cause Analysis:")
-                print(rca)
+                logging.info("Final Root Cause Analysis:")
+                logging.info(rca)
                 self.generate_summary(rca)
             else:
-                print("Unable to determine a definitive Root Cause Analysis with the available information.")
+                logging.info("Unable to determine a definitive Root Cause Analysis with the available information.")
         else:
             # Attempt to force RCA generation if no findings
             rca = self.force_generate_rca_based_on_all()
             if rca:
-                print("Final Root Cause Analysis:")
-                print(rca)
+                logging.info("Final Root Cause Analysis:")
+                logging.info(rca)
                 self.generate_summary(rca, forced=True)
             else:
-                print("Unable to determine a definitive Root Cause Analysis with the available information.")
+                logging.info("Unable to determine a definitive Root Cause Analysis with the available information.")
 
         # Visualize final graph
         self.visualize_graph(final=True)
@@ -2060,27 +2060,29 @@ def delete_file(file_path):
         # Check if the file exists
         if os.path.exists(file_path):
             os.remove(file_path)
-            print(f"File '{file_path}' has been deleted successfully.")
+            logging.info(f"File '{file_path}' has been deleted successfully.")
         else:
-            print(f"File '{file_path}' does not exist.")
+            logging.info(f"File '{file_path}' does not exist.")
     except Exception as e:
-        print(f"Error deleting file '{file_path}': {e}")
+        logging.info(f"Error deleting file '{file_path}': {e}")
 
 # def main():
 def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
 
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
-
     # Convert context to JSON rules
+    logging.info("Loading rules context")
     rules_context = data_loader.convert_context_to_json_rules(rules_context, rules_json)
     if not data_loader.rules_json:
         logging.error("Rules JSON is empty. Exiting.")
         return
 
     # Load fields context
+    logging.info("Loading field context")
     fields_context = data_loader.fields_context
 
+    logging.info("Initializing vector search")
     vector_search = VectorSearch()
     vector_search.load_or_build_vectors(rules_context, fields_context, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file)
 
@@ -2108,6 +2110,7 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
         'target_q_update_frequency': 100  # Frequency to update target network
     }
 
+    logging.info("Running Graph of thoughts")
     got_manager = GraphOfThoughts(udf_order_id, data_loader, vector_search, config=config)
     got_manager.run_analysis()
 
