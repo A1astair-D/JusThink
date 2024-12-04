@@ -1,6 +1,7 @@
 from flask import jsonify
 from flask.cli import load_dotenv
 from openai import OpenAI, AzureOpenAI
+import openai
 import json
 import logging
 import tiktoken
@@ -2086,7 +2087,7 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
     fields_context = data_loader.fields_context
 
     logging.info("Initializing vector search")
-    vector_search = VectorSearch()
+    vector_search = VectorSearch(embedding_model=AZURE_EMB_DEPLOYMENT_NAME)
     vector_search.load_or_build_vectors(rules_context, fields_context, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file)
 
     logging.info("All embeddings and context files have been generated and saved successfully.")
