@@ -2073,6 +2073,9 @@ def delete_file(file_path):
 # def main():
 def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
 
+    print(vars(client))
+    print(vars(encoder))
+
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
     # Convert context to JSON rules
@@ -2088,6 +2091,7 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
 
     logging.info("Initializing vector search")
     vector_search = VectorSearch(embedding_model=AZURE_EMB_DEPLOYMENT_NAME)
+    print(vars(vector_search))
     vector_search.load_or_build_vectors(rules_context, fields_context, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file)
 
     logging.info("All embeddings and context files have been generated and saved successfully.")
