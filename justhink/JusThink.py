@@ -5,6 +5,8 @@ import openai
 import json
 import logging
 import tiktoken
+import boto3
+import base64
 import os
 import pickle
 import numpy as np
@@ -47,8 +49,6 @@ logging.basicConfig(
     ]
 )
 
-OPENAPI_KEY = os.getenv("OPENAPI_KEY")
-
 def safeGet(key: str):
     value = os.environ.get(key)
     if value is None:
@@ -57,12 +57,36 @@ def safeGet(key: str):
     else:
         return value
 
+def safeGetWithDefault(key: str, default:str):
+    value = os.environ.get(key)
+    if value is None:
+        logging.debug(f"ENV NOT FOUND for key: {key}, using default value {default}")
+        return default
+    else:
+        return value
+    
+def getKmsDecryptedValue(value: str):
+    try:
+    # kms_client = boto3.client('kms', region_name=AWS_REGION, endpoint_url='http://localhost:4566')
+        kms_client = boto3.client('kms', region_name=AWS_REGION)
+        encrypted_key = base64.b64decode(value)
+        response = kms_client.decrypt(
+            CiphertextBlob=encrypted_key
+        )
+        return response['Plaintext'].decode('utf-8')
+    except:
+        return safeGet("AZURE_OAI_API_KEY")
+
+AWS_REGION=safeGetWithDefault("AWS_REGION", "ap-south-1")
 AZURE_GPT_DEPLOYMENT_NAME = safeGet("AZURE_GPT_DEPLOYMENT_NAME")
 AZURE_GPT_MODEL_NAME = safeGet("AZURE_GPT_MODEL_NAME")
 AZURE_EMB_DEPLOYMENT_NAME =safeGet("AZURE_EMB_DEPLOYMENT_NAME")
 AZURE_OAI_BASE_URL = safeGet("AZURE_OAI_BASE_URL")
 AZURE_OAI_API_VERSION = safeGet("AZURE_OAI_API_VERSION")
-AZURE_OAI_API_KEY = safeGet("AZURE_OAI_API_KEY")
+AZURE_OAI_API_KEY = getKmsDecryptedValue(safeGet("AZURE_OAI_API_KEY"))
+
+# OPENAPI_KEY = os.getenv("OPENAPI_KEY")
+# # client = OpenAI(api_key=OPENAPI_KEY)
 
 
 # client = OpenAI(api_key=OPENAPI_KEY)
