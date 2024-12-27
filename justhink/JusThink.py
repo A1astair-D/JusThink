@@ -5,8 +5,6 @@ import openai
 import json
 import logging
 import tiktoken
-import boto3
-import base64
 import os
 import pickle
 import numpy as np
@@ -367,7 +365,6 @@ class VectorSearch:
             self.rule_embeddings, self.rule_ids = rule_embeddings_file
             self.rule_nn = NearestNeighbors(n_neighbors=5, metric='cosine').fit(self.rule_embeddings)
             logging.info("Rule embeddings loaded from given data successfully.")
-            return
 
         # Check and build rule embeddings if they are not already built
         if self.rule_embeddings is None:
@@ -616,7 +613,8 @@ class DataLoader:
     @retry(stop=stop_after_attempt(1), wait=wait_random_exponential(min=1, max=10))
     def generate_field_context(self, json_file, field):
         prompt = f"""
-You are an expert in payment systems. Provide a concise description of the following field from {json_file}:
+You are an expert in payment systems. Provide a single line description of the following field from {json_file}
+NOTE : jp in key refers to Juspay. :
 
 Field: "{field}"
 
@@ -665,7 +663,13 @@ Description:
         prompt = f"""
 You are an expert in converting natural language descriptions into structured JSON rules.
 
-Convert the following context into a JSON format where each rule is an object with a "rule_number" and "rule_content":
+Convert the following context into a JSON format where each rule is an object with a "rule_number" and "rule_content"
+
+Truncate data to have important but still detailed rules so we don't exceed token limit. 
+It is good to have each rule of same length. Give rule numbers on your own, only study the data.
+
+ONLY give rule_number and rule content for each rule. 
+These rules are to be use by llm as a knowledge system so write the rule content in brief without omitting necessary details:
 
 {self.context_text}
 
@@ -683,6 +687,7 @@ Output the rules in valid JSON format.
                 temperature=0,
             )
             rules_proper_json = response.choices[0].message.content
+            logging.info("Proper rules: ", rules_proper_json)
             rules_text_json = response.choices[0].message.content.split("```")
             first_four = rules_text_json[1][:4]
             if first_four == 'json':
@@ -777,7 +782,8 @@ Description:
 
     def get_field_value(self, json_file, field_path):
         """
-        Retrieves the value of a nested field from a specified JSON file.
+        Retrieves the values of a nested field from a specified JSON file,
+        iterating over all top-level keys in the file.
         """
         json_mapping = {
             'log': self.log_json,
@@ -789,17 +795,25 @@ Description:
             logging.error(f"Unknown JSON file: {json_file}")
             return None
 
-        keys = field_path.split('.')
-        for key in keys:
-            if isinstance(data, dict):
-                data = data.get(key)
-                if data is None:
-                    logging.warning(f"Field '{field_path}' not found in {json_file}.")
-                    return None
-            else:
-                logging.warning(f"Field '{field_path}' is not a dictionary in {json_file}.")
-                return None
-        return data
+        results = []
+        for key, log_data in data.items():
+            if not isinstance(log_data, dict):
+                continue
+            
+            keys = field_path.split('.')
+            for nested_key in keys:
+                if isinstance(log_data, dict):
+                    log_data = log_data.get(nested_key)
+                    if log_data is None:
+                        break
+                else:
+                    break
+            
+            if log_data is not None:
+                results.append(log_data)
+
+        return results
+
 
 class ThoughtNode:
     def __init__(self, description, parent=None, depth=0):
@@ -1874,6 +1888,8 @@ Attribution: [Attribution here] Confidence: [score]
 Attribution tag: [Tag here]
 
 Issue 2:
+Root Cause Analysis: [Detailed analysis here] Confidence: [score]
+
 ...
 """
 
@@ -1912,6 +1928,8 @@ Attribution: [Attribution here] Confidence: [score]
 Attribution tag: [Tag here]
 
 Issue 2:
+Root Cause Analysis: [Detailed analysis here] Confidence: [score]
+
 ...
 """
 
@@ -2096,9 +2114,6 @@ def delete_file(file_path):
 
 # def main():
 def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
-
-    print(vars(client))
-    print(vars(encoder))
 
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
