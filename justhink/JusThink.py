@@ -1720,7 +1720,7 @@ Issue 2:
         plt.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1, 1))
         plt.tight_layout()
 
-        filename = f"thought_graph_{self.udf_order_id}_{'final' if final else 'current'}.png"
+        filename = f"justhink_results/thought_graph_{self.udf_order_id}_{'final' if final else 'current'}.png"
         plt.savefig(filename, format='png', dpi=300, bbox_inches='tight')
         plt.close()
 
@@ -1982,7 +1982,7 @@ Root Cause Analysis: [Detailed analysis here] Confidence: [score]
         self.summary = summary
 
         # Save summary to a file
-        report_filename = f"RCA_Report_{self.udf_order_id}.txt"
+        report_filename = f"justhink_results/RCA_Report_{self.udf_order_id}.txt"
         try:
             with open(report_filename, 'w') as f:
                 f.write(summary)
@@ -2096,7 +2096,7 @@ Root Cause Analysis: [Detailed analysis here] Confidence: [score]
         self.visualize_graph(final=True)
 
         # Read graph data
-        self.graph_png = self.load_graph_png(f"thought_graph_{self.udf_order_id}_final.png")
+        self.graph_png = self.load_graph_png(f"justhink_results/thought_graph_{self.udf_order_id}_final.png")
 
         # Log the final traversal path
         logging.info(f"Final Traversal Path: {self.traversed_path}")
@@ -2172,8 +2172,8 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
     delete_file(f"rules_context.json")
     delete_file(f"rules.json")
     
-    delete_file(f"thought_graph_{udf_order_id}_final.png")
-    delete_file(f"RCA_Report_{udf_order_id}.txt")
+    delete_file(f"justhink_results/thought_graph_{udf_order_id}_final.png")
+    delete_file(f"justhink_results/RCA_Report_{udf_order_id}.txt")
 
     logging.info("Returning final object")
     return {
