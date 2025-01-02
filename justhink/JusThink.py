@@ -812,6 +812,7 @@ Description:
             if log_data is not None:
                 results.append(log_data)
 
+        logging.info(results)
         return results
 
 
@@ -982,6 +983,7 @@ class ExecutorModuleJSON:
                     for field in fields:
                         field = field.strip("[]\"'")
                         # Fetch values from the original JSON files
+                        logging.info("Alastair field", field)
                         value = self.data_loader.get_field_value(json_file_attr, field)
                         fetched_data[f"{current_json}.json: {field}"] = value
 
@@ -2162,15 +2164,15 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
     got_manager.run_analysis()
 
     logging.info("Purging Used files")
-    delete_file(f"Log.json_context.json")
-    delete_file(f"Merchant Configurations.json_context.json")
-    delete_file(f"Transaction Meta Data.json_context.json")
-    delete_file(f"embeddings_cache/Log.json_embeddings.pkl")
-    delete_file(f"embeddings_cache/Merchant Configurations.json_embeddings.pkl")
-    delete_file(f"embeddings_cache/Transaction Meta Data.json_embeddings.pkl")
-    delete_file(f"embeddings_cache/rule_embeddings.pkl")
-    delete_file(f"rules_context.json")
-    delete_file(f"rules.json")
+    # delete_file(f"Log.json_context.json")
+    # delete_file(f"Merchant Configurations.json_context.json")
+    # delete_file(f"Transaction Meta Data.json_context.json")
+    # delete_file(f"embeddings_cache/Log.json_embeddings.pkl")
+    # delete_file(f"embeddings_cache/Merchant Configurations.json_embeddings.pkl")
+    # delete_file(f"embeddings_cache/Transaction Meta Data.json_embeddings.pkl")
+    # delete_file(f"embeddings_cache/rule_embeddings.pkl")
+    # delete_file(f"rules_context.json")
+    # delete_file(f"rules.json")
     
     delete_file(f"justhink_results/thought_graph_{udf_order_id}_final.png")
     delete_file(f"justhink_results/RCA_Report_{udf_order_id}.txt")
