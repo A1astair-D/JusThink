@@ -75,7 +75,7 @@ def getKmsDecryptedValue(value: str):
     except:
         return safeGet("AZURE_OAI_API_KEY")
 
-AWS_REGION=safeGetWithDefault("AWS_REGION", "ap-south-1")
+AWS_REGION = safeGetWithDefault("AWS_REGION", "ap-south-1")
 AZURE_GPT_DEPLOYMENT_NAME = safeGet("AZURE_GPT_DEPLOYMENT_NAME")
 AZURE_GPT_MODEL_NAME = safeGet("AZURE_GPT_MODEL_NAME")
 AZURE_EMB_DEPLOYMENT_NAME =safeGet("AZURE_EMB_DEPLOYMENT_NAME")
@@ -2114,6 +2114,9 @@ def delete_file(file_path):
 
 # def main():
 def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file, rules_context, rules_json, log_embeddings_file, merchant_configurations_embeddings_file, transaction_meta_data_embeddings_file, rule_embeddings_file):
+
+    logging.info(vars(encoder))
+    logging.info(AZURE_OAI_API_KEY)
 
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
