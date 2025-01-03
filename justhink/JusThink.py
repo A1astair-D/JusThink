@@ -1,5 +1,7 @@
 from flask import jsonify
 from flask.cli import load_dotenv
+import boto3
+import base64
 from openai import OpenAI, AzureOpenAI
 import openai
 import json
@@ -72,7 +74,8 @@ def getKmsDecryptedValue(value: str):
             CiphertextBlob=encrypted_key
         )
         return response['Plaintext'].decode('utf-8')
-    except:
+    except Exception as e:
+        logging.info("Failed to load encrypted key : ", e)
         return safeGet("AZURE_OAI_API_KEY")
 
 AWS_REGION = safeGetWithDefault("AWS_REGION", "ap-south-1")
