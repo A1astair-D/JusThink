@@ -2121,6 +2121,9 @@ def analyze(udf_order_id, udf_merchant_id, log, merchant_details, transaction_de
     logging.info(vars(encoder))
     logging.info(AZURE_OAI_API_KEY)
 
+    if not os.path.exists("justhink_results"):
+        os.makedirs("justhink_results")
+
     data_loader = DataLoader(log, merchant_details, transaction_details, log_context_file, merchant_context_file, transaction_context_file, rules_context_text_file)
     
     # Convert context to JSON rules
